@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDICINE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h1 class="logo">+MEDICINE</h1>
+            <h3 class="history-title">История загрузок</h3>
+            <ul class="history-list">
+                {% if history %}
+                    {% for item in history|reverse %}
+                        <li class="history-item" onclick="showHistoryItem('{{ item.image_path }}', '{{ item.diagnosis }}')">
+                            <span class="history-date">{{ item.date }}</span><br>
+                            <span class="history-diagnosis {{ 'malignant' if item.diagnosis == 'злокачественная родинка' else 'benign' }}">
+                                {{ item.diagnosis }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="history-item">Нет данных</li>
+                {% endif %}
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h2>Загрузить изображение</h2>
+            <div class="upload-section">
+                <button id="chooseFileButton" class="button">Выбрать файл</button>
+                <input type="file" id="fileInput" class="button hidden" accept="image/*">
+                <span id="fileName">Файл не выбран</span>
+            </div>
+
+            <div class="result" id="resultSection">
+                <p>Загрузите фото родинки, сделанное с помощью дерматоскопа.</p>
+                <p>Убедитесь, что изображение чёткое, хорошо освещённое и охватывает всю область исследования.</p>
+                <p>Дождитесь результата анализа нейронной сети.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('chooseFileButton').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                document.getElementById('fileName').textContent = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const resultHTML = `
+                        <h3>Результаты анализа</h3>
+                        <img src="${event.target.result}" alt="Загруженное изображение">
+                        <p>Обработка...</p>
+                    `;
+                    document.getElementById('resultSection').innerHTML = resultHTML;
+                };
+                reader.readAsDataURL(file);
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    document.querySelector('#resultSection p').textContent = `Результат: ${data.diagnosis}`;
+                })
+                .catch(error => {
+                    document.querySelector('#resultSection p').textContent = `Ошибка: ${error.message}`;
+                });
+            }
+        });
+
+        function showHistoryItem(imagePath, diagnosis) {
+            const resultHTML = `
+                <h3>Результаты анализа</h3>
+                <img src="${imagePath}" alt="История анализа" class="result-preview">
+                <p>Результат: ${diagnosis}</p>
+            `;
+            document.getElementById('resultSection').innerHTML = resultHTML;
+        }
+    </script>
+</body>
+</html>

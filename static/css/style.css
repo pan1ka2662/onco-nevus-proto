@@ -1,0 +1,249 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Open Sans', sans-serif;
+    background-color: #F2F2F2;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.logo {
+    color: #009cf0;
+    margin-bottom: 20px;
+}
+
+
+.sidebar h3 {
+    color: #565656;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.sidebar li {
+    margin: 8px 0;
+    color: #4B4B4B;
+}
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+    text-align: center;
+}
+
+.main-content h2{
+    color: #309BFF;
+}
+
+.upload-section {
+    margin: 20px 0;
+    background-color: #fff;
+    box-shadow: 0px 5px 10px 0px #0000001A;
+    width: 410px;
+    height: 68px;
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.upload-section button {
+    background-color: #309BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+.hidden {
+    opacity: 0;
+    height: 0;
+    width: 0;
+    line-height: 0;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+
+.result {
+    background-color: white;
+    display: inline-block;
+    padding: 20px 50px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    margin-top: 30px;
+    max-width: 300px;
+    color: #565656;
+}
+
+.result img {
+    max-width: 250px;
+    border-radius: 5px;
+    display: block;
+    margin: 0 auto;
+}
+
+.result p {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+
+/* --- адаптив --- */
+
+@media (max-width: 650px) {
+
+    .upload-section {
+        width: 300px;
+    
+    }
+
+}
+
+@media (max-width: 535px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        box-shadow: none;
+        padding: 10px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .main-content {
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .upload-section {
+        max-width: 170px;
+        height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px;
+    }
+
+    .upload-section span {
+        display: none;
+    }
+
+    .upload-section button {
+        margin-right: 0;
+    }
+
+    .result {
+        max-width: 100%;
+        box-sizing: border-box;
+        min-width: 300px;
+    }
+    
+    .history-title {
+        color: #565656;
+        margin-top: 20px;
+    }
+
+    .history-list {
+        list-style: none;
+        padding-left: 0;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .history-item {
+        padding: 10px;
+        margin: 8px 0;
+        background-color: #fff;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .history-item:hover {
+        background-color: #f0f8ff;
+    }
+
+    .history-date {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .history-diagnosis {
+        font-weight: bold;
+    }
+
+    .history-diagnosis.malignant {
+        color: #e74c3c;
+    }
+
+    .history-diagnosis.benign {
+        color: #2ecc71;
+    }
+
+    /* Полоса прокрутки */
+    .history-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .history-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+        background: #309BFF;
+        border-radius: 3px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb:hover {
+        background: #1c7cd6;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .result {
+        max-width: 90%;
+        padding: 15px;
+    }
+
+}
+
+.result-preview {
+    max-width: 250px;
+    border-radius: 5px;
+    display: block;
+    margin: 0 auto;
+}
+
+#resultSection p {
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 18px;
+}

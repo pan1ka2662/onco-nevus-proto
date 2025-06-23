@@ -111,7 +111,7 @@ def upload_file():
                 'filename': filename,
                 'diagnosis': diagnosis,
                 'outputs': [output1, output2, output3],
-                'image_path': os.path.join(upload_dir, filename)
+                'image_path': f'/static/uploads/{filename}'
             }
 
             upload_history.append(history_entry)

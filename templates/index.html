@@ -11,6 +11,14 @@
     <div class="container">
         <aside class="sidebar">
             <h1 class="logo">+MEDICINE</h1>
+            <div style="margin-bottom: 10px;">
+                {% if current_user.is_authenticated %}
+                    <span>Пользователь: <b>{{ current_user.username }}</b></span><br>
+                    <a href="{{ url_for('logout') }}">Выйти</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Войти</a>
+                {% endif %}
+            </div>
             <h3 class="history-title">История загрузок</h3>
             <ul class="history-list">
                 {% if history %}

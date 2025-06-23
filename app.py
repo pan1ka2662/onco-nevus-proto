@@ -1,11 +1,14 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 import json
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
@@ -73,20 +76,63 @@ transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
+# --- DB & Login setup ---
+db = SQLAlchemy()
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    uploads = db.relationship('Upload', backref='user', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+class Upload(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(128), nullable=False)
+    image_path = db.Column(db.String(256), nullable=False)
+    diagnosis = db.Column(db.String(64), nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
+    outputs = db.Column(db.PickleType)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# --- App factory ---
+def create_app():
+    app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'your_secret_key_here'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+    db.init_app(app)
+    login_manager.init_app(app)
+    return app
+
+app = create_app()
+
+with app.app_context():
+    db.create_all()
+
 @app.route('/')
+@login_required
 def index():
-    return render_template('index.html', history=upload_history[-10:])
+    user_uploads = Upload.query.filter_by(user_id=current_user.id).order_by(Upload.date.desc()).limit(10).all()
+    return render_template('index.html', history=user_uploads, current_user=current_user)
 
 @app.route('/upload', methods=['POST'])
+@login_required
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
-    
     file = request.files['file']
-    
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
-    
     if file:
         try:
             upload_dir = 'static/uploads'
@@ -97,36 +143,64 @@ def upload_file():
             image = Image.open(file.stream).convert('RGB')
             image.save(filepath)
             image_tensor = transform(image).unsqueeze(0).to(device)
-            
             with torch.no_grad():
                 output1 = model1(image_tensor).item()
                 output2 = model2(image_tensor).item()
                 output3 = model3(image_tensor).item()
-            
             malignant = output1 > 0 or output2 > 0 or output3 > 0
             diagnosis = "злокачественная родинка" if malignant else "доброкачественная родинка"
-            
-            history_entry = {
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'filename': filename,
-                'diagnosis': diagnosis,
-                'outputs': [output1, output2, output3],
-                'image_path': f'/static/uploads/{filename}'
-            }
-
-            upload_history.append(history_entry)
-            with open(HISTORY_FILE, 'w') as f:
-                json.dump(upload_history, f, indent=2)
-
+            upload = Upload(
+                filename=filename,
+                image_path=f'/static/uploads/{filename}',
+                diagnosis=diagnosis,
+                date=datetime.now(),
+                outputs=[output1, output2, output3],
+                user_id=current_user.id
+            )
+            db.session.add(upload)
+            db.session.commit()
             return jsonify({
                 'diagnosis': diagnosis,
                 'outputs': [output1, output2, output3],
-                'image_path': history_entry['image_path']
+                'image_path': upload.image_path
             })
-        
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if User.query.filter_by(username=username).first():
+            flash('Пользователь уже существует')
+            return redirect(url_for('register'))
+        user = User(username=username)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Регистрация успешна! Войдите в систему.')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
+            return redirect(url_for('index'))
+        flash('Неверное имя пользователя или пароль')
+        return redirect(url_for('login'))
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

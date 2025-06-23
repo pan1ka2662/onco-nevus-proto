@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #F2F2F2;
+        }
+        .auth-box {
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            min-width: 320px;
+            text-align: center;
+        }
+        .auth-box h2 {
+            color: #309BFF;
+            margin-bottom: 24px;
+        }
+        .auth-box input[type="text"], .auth-box input[type="password"] {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .auth-box button {
+            background-color: #309BFF;
+            color: white;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .auth-box a {
+            color: #309BFF;
+            text-decoration: none;
+        }
+        .auth-box ul { color: #e74c3c; padding-left: 0; }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Регистрация</h2>
+        <form method="post">
+            <input type="text" name="username" placeholder="Имя пользователя" required><br>
+            <input type="password" name="password" placeholder="Пароль" required><br>
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+        <p style="margin-top: 18px;">Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+    </div>
+</div>
+</body>
+</html> 
